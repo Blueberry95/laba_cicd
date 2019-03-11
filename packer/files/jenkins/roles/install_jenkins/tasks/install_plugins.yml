@@ -1,0 +1,23 @@
+---
+
+- name: Install plugins
+  jenkins_plugin:
+    name: "{{ item }}"
+    url_username: "{{ jenkins_admin_username }}"
+    url_password: "{{ jenkins_admin_password }}"
+    url: "http://localhost:8080"
+  with_items: "{{ jenkins_plugins }}"
+  register: jenkins_plugins_install
+  retries: 15
+  delay: 5
+  until: jenkins_plugins_install is success
+  notify: Restart jenkins
+
+- name: Disable DSL script security
+  template:
+    src: disable-script-security.groovy.j2
+    dest: "{{ jenkins_script_dir }}/disable-script-security.groovy"
+    owner: "{{ jenkins_process_user }}"
+    group: "{{ jenkins_process_group }}"
+    mode: 0775
+  notify: Restart jenkins

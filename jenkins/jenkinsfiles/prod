@@ -1,0 +1,26 @@
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Testing..'
+            }
+        }
+        stage('Create test VM') {
+            steps {
+                git branch: 'master',
+                url: 'https://github.com/Blueberry95/laba_cicd.git'
+                dir ('terraform/staging') { 
+                    sh('terraform init && terraform apply -auto-approve | grep "instance_private_ip" | awk \'{ print $NF }\' > private_ip')
+                }
+            }
+        }
+        stage('Test application') {
+            steps {
+                dir ('terraform/staging') { 
+                    sh('IP=$(cat private_ip) && ping $IP -c 10')
+                }
+            }
+        }
+    }
+} 

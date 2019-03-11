@@ -1,0 +1,18 @@
+---
+
+- name: Ensure dependencies are installed
+  apt:
+    name: "{{ terraform_installation_dependecies }}"
+    state: present
+    update_cache: yes
+  register: install_dependecies
+  retries: 6
+  delay: 10
+  until: install_dependecies is success
+  
+- name: Download and unarchive terraform
+  unarchive:
+    src: "{{ terraform_pkg_url }}"
+    dest: /usr/local/bin
+    remote_src: yes
+    mode: 755

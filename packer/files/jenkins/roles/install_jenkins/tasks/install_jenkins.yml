@@ -1,0 +1,22 @@
+---
+
+- name: Ensure dependencies are installed
+  apt:
+    name: "{{ jenkins_installation_dependecies }}"
+    state: present
+    update_cache: yes
+  register: install_dependecies
+  retries: 6
+  delay: 10
+  until: install_dependecies is success
+
+- name: Download specific Jenkins version
+  get_url:
+    url: "{{ jenkins_pkg_url }}/jenkins_{{ jenkins_version }}_all.deb"
+    dest: "/tmp/jenkins_{{ jenkins_version }}_all.deb"
+
+- name: Install our specific version of Jenkins
+  apt:
+    deb: "/tmp/jenkins_{{ jenkins_version }}_all.deb"
+    state: present
+

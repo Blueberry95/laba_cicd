@@ -1,0 +1,13 @@
+---
+
+# Run initial system config.
+- include_tasks: init.yml
+
+# Setup/install tasks.
+- include_tasks: install_jenkins.yml
+
+# Configure isntalled jenkins tasks.
+- include_tasks: configure_jenkins.yml
+
+# Install jenkins plugins.
+- include_tasks: install_plugins.yml

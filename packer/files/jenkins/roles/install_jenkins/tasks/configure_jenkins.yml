@@ -1,0 +1,87 @@
+---
+
+# Checks if initial jenkins configuration is finished
+- name: Check jenkins logs for initial configuration
+  shell: "grep \"Jenkins is fully up and running\" {{ jenkins_default_log_file }}"
+  register: admin_created
+  retries: 40
+  delay: 5
+  until: admin_created is success
+
+- name: Create jenkins startup directory and seed job directory
+  file:
+    path: "{{ item }}"
+    owner: "{{ jenkins_process_user }}"
+    group: "{{ jenkins_process_group }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - "{{ jenkins_script_dir }}"
+    - "{{ jenkins_seed_job }}"
+
+- name: Copy job config into seed job directory
+  template:
+    src: seed_job_config.xml.j2
+    dest: "{{ jenkins_seed_job }}/config.xml"
+    owner: "{{ jenkins_process_user }}"
+    group: "{{ jenkins_process_group }}"
+    mode: 0644
+
+# Script is copied into init.groovy.d to configure admin user on startup and avoid jenkins activation screen.
+- name: Configure default users
+  template:
+    src: basic-security.groovy.j2
+    dest: "{{ jenkins_script_dir }}/basic-security.groovy"
+    owner: "{{ jenkins_process_user }}"
+    group: "{{ jenkins_process_group }}"
+    mode: 0775
+
+# Restart jenkins to apply configuration script
+- name: Restart jenkins
+  service: 
+    name: jenkins 
+    state: restarted
+
+# Checks if user configuration script was started
+- name: Check jenkins logs for user configuration
+  shell: "grep \"Running admin user configuration script\" {{ jenkins_default_log_file }}"
+  register: admin_created
+  retries: 15
+  delay: 5
+  until: admin_created is success
+
+# Get crumb header to allow jenkins user check
+- name: Get crumb header
+  uri:
+    url: "http://localhost:8080/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)"
+    status_code: 200
+    user: "{{ jenkins_admin_username }}"
+    password: "{{ jenkins_admin_password }}"
+    timeout: 5
+    return_content: yes
+  register: jenkins_crumb
+  retries: 15
+  delay: 5
+  until: jenkins_crumb is success
+
+# Checks admin user creation
+- name: Check user creation
+  uri:
+    url: "http://localhost:8080/login"
+    status_code: 200
+    user: "{{ jenkins_admin_username }}"
+    password: "{{ jenkins_admin_password }}"
+    timeout: 5
+    method: POST
+    headers:
+      Jenkins-Crumb: "{{ jenkins_crumb.content.split(\":\")[1] }}"
+  register: jenkins_user_status
+  retries: 15
+  delay: 5
+  until: jenkins_user_status is success
+
+# Sript is removed to avoid resetting of admin user credentials on every restart
+- name: Remove user configuration script
+  file:
+    path: "{{ jenkins_script_dir }}/basic-security.groovy"
+    state: absent

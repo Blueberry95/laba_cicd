@@ -1,0 +1,10 @@
+---
+
+- name: Check if necessary variables are set
+  fail:
+    msg: "{{ item }}  is not set"
+  when: (item is not defined) or (item == "")
+  with_items:
+    - jenkins_version
+    - jenkins_admin_username
+    - jenkins_admin_password
