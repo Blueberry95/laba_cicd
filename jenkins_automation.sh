@@ -95,4 +95,12 @@ if ! [ -e /usr/local/bin/terraform ]; then
 fi
 
 cd packer
-packer build -var "aws_access_key=$AWS_KEY" -var "aws_secret_key=$AWS_SECRET" -var "region=$REGION" -var "jenkins_admin_username=$USERNAME" -var "jenkins_admin_password=$PASSWORD" jenkins_ami.json
+AMI_ID=$(packer build -var "aws_access_key=$AWS_KEY" -var "aws_secret_key=$AWS_SECRET" -var "region=$REGION" -var "jenkins_admin_username=$USERNAME" -var "jenkins_admin_password=$PASSWORD" jenkins_ami.json | egrep 'ami-.*' -o | tail -n 1)
+if [ "$?" = "0" ]; then
+    echo "Packer built"
+else
+    echo "Packer failed" 1>&2
+    exit 1
+fi
+
+
