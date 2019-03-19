@@ -37,3 +37,4 @@ jenkins_plugins:
   - subversion
   - ssh-slaves
   - ssh
+  - pipeline-aws

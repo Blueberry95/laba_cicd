@@ -1,4 +1,4 @@
-
+HOME_DIR=$(pwd)
 
 AWS_KEY=$1
 if [ "$AWS_KEY" = "" ]; then
@@ -66,14 +66,6 @@ fi
 
 echo "Installation Terraform"
 if ! [ -e /usr/local/bin/terraform ]; then
-
-    if [ "$?" = "0" ]; then
-        echo "Directory maked and changed"
-    else
-        echo "Directory creation failed" 1>&2
-        exit 1
-    fi
-
     curl -L "https://releases.hashicorp.com/terraform/0.11.11/terraform_0.11.11_linux_amd64.zip" >> /usr/local/bin/terraform.zip
 
     if [ "$?" = "0" ]; then
@@ -94,13 +86,28 @@ if ! [ -e /usr/local/bin/terraform ]; then
     fi
 fi
 echo "Creating AMI"
-cd packer
+cd $HOME_DIR/packer
 AMI_ID=$(packer build -var "aws_access_key=$AWS_KEY" -var "aws_secret_key=$AWS_SECRET" -var "region=$REGION" -var "jenkins_admin_username=$USERNAME" -var "jenkins_admin_password=$PASSWORD" jenkins_ami.json | egrep 'ami-.*' -o | tail -n 1)
-if [ "$?" = "0" ]; then
+if echo $AMI_ID | grep 'ami-.*'; then
     echo "Packer built"
 else
     echo "Packer failed" 1>&2
     exit 1
 fi
 
+cd $HOME_DIR/terraform/jenkins
+terraform init
+if [ "$?" = "0" ]; then
+    echo "Terraform successfully initialized"
+else
+    echo "Failed to initialize Terraform" 1>&2
+    exit 1
+fi
 
+terraform apply -var "ami_id=ami-002a5622278804c56" -var "key_name=work_us_east" -auto-approve
+if [ "$?" = "0" ]; then
+    echo "Terraform successfully applied"
+else
+    echo "Failed to apply Terraform" 1>&2
+    exit 1
+fi

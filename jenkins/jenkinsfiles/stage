@@ -28,6 +28,7 @@ pipeline {
             dir ('terraform/staging') { 
                 sh('terraform destroy -auto-approve')
             }
+            cleanWs()
         }
     }
 } 

@@ -20,3 +20,13 @@ variable "public_ip" {
 variable "vpc_security_group_id" {
   default = ""
 }
+
+variable "deploy_prod" {}
+
+variable "min_size" {
+  default = "1"
+}
+
+variable "max_size" {
+  default = "1"
+}

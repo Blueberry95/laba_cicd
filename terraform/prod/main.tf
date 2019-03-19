@@ -1,7 +1,7 @@
 terraform {
   backend "s3" {
     bucket = "labacicdterraform"
-    key    = "staging/staging.tfstate"
+    key    = "prod/prod.tfstate"
     region = "us-east-2"
   }
 }
@@ -18,12 +18,11 @@ data "terraform_remote_state" "base_state" {
     region = "us-east-2"
   }
 }
-
-module "stage" {
+module "prod" {
   source                = "../modules/web_server"
   cluster_name          = "${data.terraform_remote_state.base_state.cluster_name}"
   subnet_id             = "${data.terraform_remote_state.base_state.private_subnet_id}"
   vpc_security_group_id = "${data.terraform_remote_state.base_state.sg_id_stage}"
   key_name              = "${var.key_name}"
-  deploy_prod           = false
+  deploy_prod           = true
 }

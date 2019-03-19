@@ -3,6 +3,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
+                step([$class: 'WsCleanup'])
                 echo 'Testing..'
             }
         }
@@ -10,16 +11,21 @@ pipeline {
             steps {
                 git branch: 'master',
                 url: 'https://github.com/Blueberry95/laba_cicd.git'
-                dir ('terraform/staging') { 
-                    sh('terraform init && terraform apply -auto-approve | grep "instance_private_ip" | awk \'{ print $NF }\' > private_ip')
+                dir ('terraform/prod') { 
+                    sh('terraform init && terraform apply -auto-approve | grep "instance_public_ip" | awk \'{ print $NF }\' > public_ip')
                 }
             }
         }
         stage('Test application') {
             steps {
-                dir ('terraform/staging') { 
-                    sh('IP=$(cat private_ip) && ping $IP -c 10')
+                dir ('terraform/prod') { 
+                    sh('IP=$(cat public_ip) && ping $IP -c 10')
                 }
+            }
+        }
+        post {
+            always('Clean Workspace') {
+                cleanWs()
             }
         }
     }

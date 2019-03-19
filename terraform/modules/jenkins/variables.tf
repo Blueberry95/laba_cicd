@@ -20,11 +20,6 @@ variable "min_size" {
 variable "max_size" {
   default = "1"
 }
-
-variable "launch_autoscaling" {
-  default = false
-}
-
 variable "vpc_security_group_id" {}
 
 variable "public_ip" {
