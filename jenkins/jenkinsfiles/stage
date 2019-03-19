@@ -1,8 +1,12 @@
 pipeline {
     agent any
+    parameters {
+        string(name: 'BUCKET', defaultValue: 'labacicdterraform', description: 'AWS bucket for tf.state')
+    }
     stages {
         stage('Build') {
             steps {
+                step([$class: 'WsCleanup'])
                 echo 'Testing..'
             }
         }
@@ -11,14 +15,14 @@ pipeline {
                 git branch: 'master',
                 url: 'https://github.com/Blueberry95/laba_cicd.git'
                 dir ('terraform/staging') { 
-                    sh('terraform init && terraform apply -auto-approve | grep "instance_private_ip" | awk \'{ print $NF }\' > private_ip')
+                    sh("terraform init -backend-config=\"bucket=${params.BUCKET}\" && terraform apply -var \"bucket=${params.BUCKET}\" -auto-approve")
                 }
             }
         }
         stage('Test application') {
             steps {
                 dir ('terraform/staging') { 
-                    sh('IP=$(cat private_ip) && ping $IP -c 10')
+                    sh('IP=$(terraform output instance_private_ip) && ping $IP -c 10')
                 }
             }
         }
@@ -26,7 +30,7 @@ pipeline {
     post {
         always('Remove test VM') {
             dir ('terraform/staging') { 
-                sh('terraform destroy -auto-approve')
+                sh("terraform destroy -var \"bucket=${params.BUCKET}\" -auto-approve")
             }
             cleanWs()
         }

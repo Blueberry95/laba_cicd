@@ -72,6 +72,17 @@ resource "aws_security_group_rule" "custom_rule_stage" {
 
   security_group_id = "${aws_security_group.custom_security_stage.id}"
 }
+
+resource "aws_security_group_rule" "custom_rule_icmp_stage" {
+  type            = "ingress"
+  from_port       = -1
+  to_port         = -1
+  protocol        = "icmp"
+  cidr_blocks     = ["${var.vpc_cidr_block}"]
+
+  security_group_id = "${aws_security_group.custom_security_stage.id}"
+}
+
 resource "aws_security_group_rule" "allow_all_stage" {
   type            = "egress"
   from_port       = 0

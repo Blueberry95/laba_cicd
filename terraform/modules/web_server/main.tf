@@ -47,7 +47,7 @@ resource "aws_lb" "lb" {
   tags = [
     {
       key                 = "Name"
-      value               = "${var.cluster_name}_vm"
+      value               = "${var.cluster_name}_lb"
       propagate_at_launch = true
     }
   ]
@@ -88,8 +88,13 @@ resource "aws_autoscaling_group" "asg_prod" {
   ]
 }
 
-resource "aws_autoscaling_attachment" "asg_attachment_bar" {
+data "aws_lb_target_group" "default" {
+  count   = "${var.deploy_prod}"
+  arn     = "${aws_lb.lb.*.arn[count.index]}"
+}
+resource "aws_autoscaling_attachment" "asg_attachment" {
   count                  = "${var.deploy_prod}"
   autoscaling_group_name = "${aws_autoscaling_group.asg_prod.*.id[count.index]}"
-  elb                    = "${aws_lb.lb.*.id[count.index]}"
+  alb_target_group_arn   = "${aws_lb.lb.*.arn[count.index]}"
+  depends_on             = ["${data.aws_lb_target_group.*.default}"]
 }

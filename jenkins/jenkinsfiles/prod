@@ -1,9 +1,12 @@
 pipeline {
     agent any
+    parameters {
+        string(name: 'BUCKET', defaultValue: 'labacicdterraform', description: 'AWS bucket for tf.state')
+    }
     stages {
         stage('Build') {
             steps {
-                step([$class: 'WsCleanup'])
+                cleanWs()
                 echo 'Testing..'
             }
         }
@@ -12,21 +15,22 @@ pipeline {
                 git branch: 'master',
                 url: 'https://github.com/Blueberry95/laba_cicd.git'
                 dir ('terraform/prod') { 
-                    sh('terraform init && terraform apply -auto-approve | grep "instance_public_ip" | awk \'{ print $NF }\' > public_ip')
+                    sh("terraform init -backend-config=\"bucket=${params.BUCKET}\" && terraform apply -var \"bucket=${params.BUCKET}\" -auto-approve")
                 }
             }
         }
         stage('Test application') {
             steps {
                 dir ('terraform/prod') { 
-                    sh('IP=$(cat public_ip) && ping $IP -c 10')
+                    sh('IP=$(terraform output instance_public_ip) && ping $IP -c 10')
                 }
             }
         }
-        post {
-            always('Clean Workspace') {
-                cleanWs()
-            }
+    
+    }
+    post {
+        always('Clean Workspace') {
+            cleanWs()
         }
     }
 } 

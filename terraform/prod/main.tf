@@ -13,11 +13,12 @@ provider "aws" {
 data "terraform_remote_state" "base_state" {
   backend = "s3"
   config {
-    bucket = "labacicdterraform"
+    bucket = "${var.bucket}"
     key    = "jenkins_and_vpc/baseterraform.tfstate"
-    region = "us-east-2"
+    region = "${var.region}"
   }
 }
+
 module "prod" {
   source                = "../modules/web_server"
   cluster_name          = "${data.terraform_remote_state.base_state.cluster_name}"

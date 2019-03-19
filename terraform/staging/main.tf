@@ -13,9 +13,9 @@ provider "aws" {
 data "terraform_remote_state" "base_state" {
   backend = "s3"
   config {
-    bucket = "labacicdterraform"
+    bucket = "${var.bucket}"
     key    = "jenkins_and_vpc/baseterraform.tfstate"
-    region = "us-east-2"
+    region = "${var.region}"
   }
 }
 

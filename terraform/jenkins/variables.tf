@@ -7,9 +7,13 @@ variable "vpc_cidr_block" {
 }
 
 variable "cluster_name" {
-  default = "nyasha"
+  default = "labacicd"
 }
 
 variable "ami_id" {}
 
 variable "key_name" {}
+
+variable "bucket" {
+  default = "labacicdterraform"
+}

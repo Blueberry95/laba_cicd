@@ -6,6 +6,6 @@ variable "region" {
   default = "us-east-2"
 }
 
-variable "deploy_prod" {
-  default = false
+variable "bucket" {
+  default = "labacicdterraform"
 }
