@@ -9,3 +9,7 @@ variable "region" {
 variable "bucket" {
   default = "labacicdterraform"
 }
+
+variable "public_ip" {
+  default = true
+}

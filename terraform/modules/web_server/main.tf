@@ -14,53 +14,38 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
-resource "aws_instance" "instance_stage" {
-  count                       = "${1 - var.deploy_prod}"
-  ami                         = "${data.aws_ami.ubuntu.id}"
-  instance_type               = "${var.instance_type}"
-  key_name                    = "${var.key_name}"
-  subnet_id                   = "${var.subnet_id}"
-  associate_public_ip_address = "${var.public_ip}"
-  vpc_security_group_ids      = ["${var.vpc_security_group_id}"]
-  
-  tags = {
-    Name = "${var.cluster_name}_vm"
+resource "aws_elb" "elb" {
+  name                = "${var.cluster_name}"
+  subnets             = ["${var.subnet_id}"]
+  security_groups     = ["${var.vpc_security_group_id}"]
+  listener {
+    lb_port           = 80
+    lb_protocol       = "http"
+    instance_port     = 80
+    instance_protocol = "http"
   }
-}
-
-resource "aws_eip" "eip" {
-  count            = "${var.deploy_prod}"
-  vpc              = true
-}
-
-resource "aws_lb" "lb" {
-  count              = "${var.deploy_prod}"
-  name_prefix        = "${var.cluster_name}_lb_"
-  internal           = false
-  load_balancer_type = "application"
-
-  subnet_mapping {
-    subnet_id     = "${var.subnet_id}"
-    allocation_id = "${aws_eip.eip.*.id[count.index]}"
+  health_check {
+    healthy_threshold   = 4
+    unhealthy_threshold = 4
+    timeout             = 30
+    target              = "http:80/"
+    interval            = 45
   }
-
-  tags = [
-    {
-      key                 = "Name"
-      value               = "${var.cluster_name}_lb"
-      propagate_at_launch = true
-    }
-  ]
 }
 
 resource "aws_launch_configuration" "lc_conf_prod" {
-  count                       = "${var.deploy_prod}"
-  name_prefix                 = "${var.cluster_name}_lc_"
+  name_prefix                 = "${var.cluster_name}_lc_prod_"
   image_id                    = "${data.aws_ami.ubuntu.id}"
   instance_type               = "${var.instance_type}"
   key_name                    = "${var.key_name}"
   associate_public_ip_address = "${var.public_ip}"
   security_groups             = ["${var.vpc_security_group_id}"]
+
+  user_data = <<USER_DATA
+#!/bin/bash
+apt update -y
+apt install apache2 -y
+  USER_DATA
 
   lifecycle {
     create_before_destroy = true
@@ -68,12 +53,14 @@ resource "aws_launch_configuration" "lc_conf_prod" {
 }
 
 resource "aws_autoscaling_group" "asg_prod" {
-  count                = "${var.deploy_prod}"
-  name_prefix          = "${var.cluster_name}_ag_"
-  launch_configuration = "${aws_launch_configuration.lc_conf_prod.*.name[count.index]}"
-  min_size             = "${var.min_size}"
-  max_size             = "${var.max_size}"
-  vpc_zone_identifier  = ["${var.subnet_id}"]
+  name                      = "${aws_launch_configuration.lc_conf_prod.name}"
+  launch_configuration      = "${aws_launch_configuration.lc_conf_prod.name}"
+  min_size                  = "${var.min_size}"
+  max_size                  = "${var.max_size}"
+  vpc_zone_identifier       = ["${var.subnet_id}"]
+  load_balancers            = ["${aws_elb.elb.name}"]
+  health_check_grace_period = 120
+  health_check_type         = "ELB"
 
   lifecycle {
     create_before_destroy = true
@@ -82,19 +69,8 @@ resource "aws_autoscaling_group" "asg_prod" {
   tags = [
     {
       key                 = "Name"
-      value               = "${var.cluster_name}_vm"
+      value               = "${var.cluster_name}_asg"
       propagate_at_launch = true
     }
   ]
-}
-
-data "aws_lb_target_group" "default" {
-  count   = "${var.deploy_prod}"
-  arn     = "${aws_lb.lb.*.arn[count.index]}"
-}
-resource "aws_autoscaling_attachment" "asg_attachment" {
-  count                  = "${var.deploy_prod}"
-  autoscaling_group_name = "${aws_autoscaling_group.asg_prod.*.id[count.index]}"
-  alb_target_group_arn   = "${aws_lb.lb.*.arn[count.index]}"
-  depends_on             = ["${data.aws_lb_target_group.*.default}"]
 }

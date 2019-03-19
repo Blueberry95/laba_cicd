@@ -1,3 +1,3 @@
-output "instance_public_ip" {
-  value = "${module.prod.elastic_ip}"
+output "elb_dns" {
+  value = "${module.prod.elb_dns}"
 }

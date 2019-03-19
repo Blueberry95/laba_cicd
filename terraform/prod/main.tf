@@ -22,8 +22,8 @@ data "terraform_remote_state" "base_state" {
 module "prod" {
   source                = "../modules/web_server"
   cluster_name          = "${data.terraform_remote_state.base_state.cluster_name}"
-  subnet_id             = "${data.terraform_remote_state.base_state.private_subnet_id}"
-  vpc_security_group_id = "${data.terraform_remote_state.base_state.sg_id_stage}"
+  subnet_id             = "${data.terraform_remote_state.base_state.public_subnet_id}"
+  vpc_security_group_id = "${data.terraform_remote_state.base_state.sg_id_prod}"
   key_name              = "${var.key_name}"
-  deploy_prod           = true
+  public_ip             = "${var.public_ip}"
 }

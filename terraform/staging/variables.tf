@@ -9,3 +9,11 @@ variable "region" {
 variable "bucket" {
   default = "labacicdterraform"
 }
+
+variable "instance_type" {
+  default = "t2.micro"
+}
+
+variable "public_ip" {
+  default = false
+}

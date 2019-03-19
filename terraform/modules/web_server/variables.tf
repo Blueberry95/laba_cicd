@@ -14,14 +14,12 @@ variable "subnet_id" {
 }
 
 variable "public_ip" {
-  default = false
+  default = true
 }
 
 variable "vpc_security_group_id" {
   default = ""
 }
-
-variable "deploy_prod" {}
 
 variable "min_size" {
   default = "1"
@@ -30,3 +28,4 @@ variable "min_size" {
 variable "max_size" {
   default = "1"
 }
+

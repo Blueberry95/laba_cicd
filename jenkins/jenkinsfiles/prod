@@ -4,13 +4,13 @@ pipeline {
         string(name: 'BUCKET', defaultValue: 'labacicdterraform', description: 'AWS bucket for tf.state')
     }
     stages {
-        stage('Build') {
+        stage('Copy artifact') {
             steps {
                 cleanWs()
                 echo 'Testing..'
             }
         }
-        stage('Create test VM') {
+        stage('Create prod VM') {
             steps {
                 git branch: 'master',
                 url: 'https://github.com/Blueberry95/laba_cicd.git'
@@ -19,14 +19,6 @@ pipeline {
                 }
             }
         }
-        stage('Test application') {
-            steps {
-                dir ('terraform/prod') { 
-                    sh('IP=$(terraform output instance_public_ip) && ping $IP -c 10')
-                }
-            }
-        }
-    
     }
     post {
         always('Clean Workspace') {
