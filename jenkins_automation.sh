@@ -40,6 +40,11 @@ if [ "$KEY_NAME" = "" ]; then
     KEY_NAME=work_us_east
 fi
 
+CLUSTER_NAME=$8
+if [ "$CLUSTER_NAME" = "" ]; then
+    CLUSTER_NAME=labacicd
+fi
+
 echo "Exporting AWS keys"
 export AWS_ACCESS_KEY_ID="$AWS_KEY"
 export AWS_SECRET_ACCESS_KEY="$AWS_SECRET"
@@ -117,7 +122,7 @@ else
     exit 1
 fi
 
-terraform apply -var "ami_id=${AMI_ID}" -var "key_name=${KEY_NAME}"  -var "bucket=${BACKEND_BUCKET}" -auto-approve
+terraform apply -var "ami_id=${AMI_ID}" -var "cluster_name=${CLUSTER_NAME}" -var "key_name=${KEY_NAME}"  -var "bucket=${BACKEND_BUCKET}" -auto-approve
 if [ "$?" = "0" ]; then
     echo "Terraform successfully applied"
 else

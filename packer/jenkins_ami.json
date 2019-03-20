@@ -3,7 +3,7 @@
       "aws_access_key": "",
       "aws_secret_key": "",
       "ami_name": "jenkins",
-      "region": "eu-central-1",
+      "region": "us-east-2",
       "instance_type": "t2.micro",
       "jenkins_admin_username": "",
       "jenkins_admin_password": ""

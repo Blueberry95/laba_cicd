@@ -1,5 +1,5 @@
 variable "key_name" {
-  default = "stage_key"
+  default = "work_us_east"
 }
 
 variable "region" {
@@ -13,3 +13,5 @@ variable "bucket" {
 variable "public_ip" {
   default = true
 }
+
+variable "ami_id" {}

@@ -1,6 +1,6 @@
 ---
 
-- name: Install Jenkins localy
+- name: Install Tomcat
   hosts: all
   become: yes
   roles:

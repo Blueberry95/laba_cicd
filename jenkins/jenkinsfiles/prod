@@ -2,20 +2,34 @@ pipeline {
     agent any
     parameters {
         string(name: 'BUCKET', defaultValue: 'labacicdterraform', description: 'AWS bucket for tf.state')
+        string(name: 'IAM_ROLE', defaultValue: 'labacicd_admin_role', description: 'AWS IAM role')
+        string(name: 'ARTIFACT_NAME', defaultValue: 'artifact_NUMBER.war', description: 'Name of the artifact in s3')
+        string(name: 'ARTIFACT_BUCKET', defaultValue: 'labacicd-artifact-bucket', description: 'Name of the bucket to which upload artifacts')
+        string(name: 'REGION', defaultValue: 'us-east-2', description: 'Name of the region for AWS resources')
     }
     stages {
-        stage('Copy artifact') {
+        stage('Download artifact') {
             steps {
                 cleanWs()
-                echo 'Testing..'
+                git branch: 'master',
+                url: 'https://github.com/Blueberry95/laba_cicd.git'
+                withAWS(role:"${params.IAM_ROLE}") {
+                    s3Download(pathStyleAccessEnabled: true, file:"SampleWebApplication.war", bucket:"${params.ARTIFACT_BUCKET}", path:"${params.ARTIFACT_NAME}", force:true)
+                }
+            }
+        }
+        stage('Build image') {
+            steps {
+                dir ('packer') { 
+                    sh("packer build -var \"region=${params.REGION}\" -var \"artifact_location=${WORKSPACE}/SampleWebApplication.war\" prod_ami.json | tee ${WORKSPACE}/output_packer")
+                }
             }
         }
         stage('Create prod VM') {
             steps {
-                git branch: 'master',
-                url: 'https://github.com/Blueberry95/laba_cicd.git'
                 dir ('terraform/prod') { 
-                    sh("terraform init -backend-config=\"bucket=${params.BUCKET}\" && terraform apply -var \"bucket=${params.BUCKET}\" -auto-approve")
+                    sh('cat ${WORKSPACE}/output_packer | egrep \'ami-.*\' -o | tail -n 1 > packer_ami')
+                    sh("terraform init -backend-config=\"bucket=${params.BUCKET}\" && terraform apply -var \"ami_id=\$(cat packer_ami)\" -var \"bucket=${params.BUCKET}\" -auto-approve")
                 }
             }
         }

@@ -29,3 +29,4 @@ variable "max_size" {
   default = "1"
 }
 
+variable "ami_id" {}

@@ -3,7 +3,7 @@
 # Installation varialbles
 tomcat_version: "8.5.8"
 tomcat_pkg_url: "http://archive.apache.org/dist/tomcat/tomcat-8/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz"
-
+tomcat_jre: java-1.8.0-openjdk-amd64
 
 installation_dependecies: 
   - unzip

@@ -11,7 +11,7 @@ pipeline {
                 step([$class: 'WsCleanup'])
                 git branch: 'master',
                 url: 'https://github.com/Blueberry95/java_test.git'
-                sh("mvn package && cp ./target/*.war ${WORKSPACE}/artifact_${BUILD_NUMBER}.war")
+                sh("mvn package && cp ./target/*.war /tmp/artifact_${BUILD_NUMBER}.war")
             }
         }
         stage('Create test VM') {
@@ -20,7 +20,7 @@ pipeline {
                 url: 'https://github.com/Blueberry95/laba_cicd.git'
                 dir ('terraform/staging') { 
                     sh("mkdir .ssh && chmod 700 .ssh && chmod 700 .ssh && ssh-keygen -b 2048 -t rsa -f .ssh/ssh_key -q -N \"\" && chmod 600 .ssh/ssh_key")
-                    sh("terraform init -backend-config=\"bucket=${params.BUCKET}\" && terraform apply -var \"key_name=build_${BUILD_NUMBER}\" -var \"path_to_key=.ssh/ssh_key\" -var \"key_name_pub=\$(cat .ssh/ssh_key.pub)\" -var \"bucket=${params.BUCKET}\"  -var \"artifact_path=${WORKSPACE}/artifact_${BUILD_NUMBER}.war\"  -auto-approve")
+                    sh("terraform init -backend-config=\"bucket=${params.BUCKET}\" && terraform apply -var \"key_name=build_${BUILD_NUMBER}\" -var \"key_name_pub=\$(cat .ssh/ssh_key.pub)\" -var \"bucket=${params.BUCKET}\"  -auto-approve")
                 }
             }
         }
@@ -28,8 +28,9 @@ pipeline {
             steps {
                 dir ('terraform/staging') { 
                     sleep 60
-                    retry(10) {
-                        sh('IP=$(terraform output instance_private_ip) && scp -o StrictHostKeyChecking=no -i .ssh/ssh_key ${WORKSPACE}/artifact_${BUILD_NUMBER}.war ubuntu@${IP}:/opt/tomcat/webapps/SampleWebApplication.war')
+                    retry(30) {
+                        sleep 10
+                        sh('IP=$(terraform output instance_private_ip) && scp -o StrictHostKeyChecking=no -i .ssh/ssh_key /tmp/artifact_${BUILD_NUMBER}.war ubuntu@${IP}:/opt/tomcat/webapps/SampleWebApplication.war')
                     }
                     retry(10) {
                         sleep 10
@@ -41,7 +42,7 @@ pipeline {
         stage('Upload to s3') {
             steps{
                 withAWS(role:"${params.IAM_ROLE}") {
-                    s3Upload(pathStyleAccessEnabled: true, payloadSigningEnabled: true, file:"${WORKSPACE}/artifact_${BUILD_NUMBER}.war", bucket:"${params.ARTIFACT_BUCKET}", path:"artifact_${BUILD_NUMBER}.war")
+                    s3Upload(pathStyleAccessEnabled: true, payloadSigningEnabled: true, file:"/tmp/artifact_${BUILD_NUMBER}.war", bucket:"${params.ARTIFACT_BUCKET}", path:"artifact_${BUILD_NUMBER}.war")
                 }
             }
         }
@@ -49,7 +50,7 @@ pipeline {
     post {
         always('Remove test VM') {
             dir ('terraform/staging') { 
-                sh("terraform destroy  -var \"key_name=build_${BUILD_NUMBER}\" -var \"path_to_key=.ssh/ssh_key\" -var \"key_name_pub=\$(cat .ssh/ssh_key.pub)\" -var \"bucket=${params.BUCKET}\"  -var \"artifact_path=${WORKSPACE}/artifact_${BUILD_NUMBER}.war\"  -auto-approve")
+                sh("terraform destroy  -var \"key_name=build_${BUILD_NUMBER}\" -var \"key_name_pub=\$(cat .ssh/ssh_key.pub)\" -var \"bucket=${params.BUCKET}\"  -auto-approve")
             }
             cleanWs()
         }

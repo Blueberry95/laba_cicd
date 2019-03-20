@@ -1,51 +1,29 @@
-data "aws_ami" "ubuntu" {
-  most_recent = true
-
-  filter {
-    name   = "name" 
-    values = ["ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["099720109477"] # Canonical
-}
-
 resource "aws_elb" "elb" {
   name                = "${var.cluster_name}"
   subnets             = ["${var.subnet_id}"]
   security_groups     = ["${var.vpc_security_group_id}"]
   listener {
     lb_port           = 80
-    lb_protocol       = "http"
-    instance_port     = 80
-    instance_protocol = "http"
+    lb_protocol       = "tcp"
+    instance_port     = 8080
+    instance_protocol = "tcp"
   }
   health_check {
     healthy_threshold   = 4
     unhealthy_threshold = 4
     timeout             = 30
-    target              = "http:80/"
+    target              = "tcp:8080"
     interval            = 45
   }
 }
 
 resource "aws_launch_configuration" "lc_conf_prod" {
   name_prefix                 = "${var.cluster_name}_lc_prod_"
-  image_id                    = "${data.aws_ami.ubuntu.id}"
+  image_id                    = "${var.ami_id}"
   instance_type               = "${var.instance_type}"
   key_name                    = "${var.key_name}"
   associate_public_ip_address = "${var.public_ip}"
   security_groups             = ["${var.vpc_security_group_id}"]
-
-  user_data = <<USER_DATA
-#!/bin/bash
-apt update -y
-apt install apache2 -y
-  USER_DATA
 
   lifecycle {
     create_before_destroy = true

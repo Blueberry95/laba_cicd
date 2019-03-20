@@ -26,4 +26,5 @@ module "prod" {
   vpc_security_group_id = "${data.terraform_remote_state.base_state.sg_id_prod}"
   key_name              = "${var.key_name}"
   public_ip             = "${var.public_ip}"
+  ami_id                = "${var.ami_id}"
 }
