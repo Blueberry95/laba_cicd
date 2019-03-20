@@ -30,6 +30,16 @@ if [ "$PASSWORD" = "" ]; then
     exit 1
 fi
 
+BACKEND_BUCKET=$6
+if [ "$BACKEND_BUCKET" = "" ]; then
+    BACKEND_BUCKET=labacicdterraform
+fi
+
+KEY_NAME=$7
+if [ "$KEY_NAME" = "" ]; then
+    KEY_NAME=work_us_east
+fi
+
 echo "Exporting AWS keys"
 export AWS_ACCESS_KEY_ID="$AWS_KEY"
 export AWS_SECRET_ACCESS_KEY="$AWS_SECRET"
@@ -99,7 +109,7 @@ else
 fi
 
 cd $HOME_DIR/terraform/jenkins
-terraform init
+terraform init -backend-config="bucket=${BACKEND_BUCKET}"
 if [ "$?" = "0" ]; then
     echo "Terraform successfully initialized"
 else
@@ -107,7 +117,7 @@ else
     exit 1
 fi
 
-terraform apply -var "ami_id=ami-002a5622278804c56" -var "key_name=work_us_east" -auto-approve
+terraform apply -var "ami_id=${AMI_ID}" -var "key_name=${KEY_NAME}"  -var "bucket=${BACKEND_BUCKET}" -auto-approve
 if [ "$?" = "0" ]; then
     echo "Terraform successfully applied"
 else

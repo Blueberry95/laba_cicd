@@ -31,3 +31,12 @@ module "jenkins" {
   ami_id                = "${var.ami_id}"
   key_name              = "${var.key_name}"
 }
+
+resource "aws_s3_bucket" "bucket" {
+  bucket = "${var.cluster_name}-artifact-bucket"
+  acl    = "private"
+
+  versioning {
+    enabled = true
+  }
+}

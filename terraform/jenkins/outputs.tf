@@ -63,3 +63,7 @@ output "sg_name_stage" {
 output "cluster_name" {
   value = "${var.cluster_name}"
 }
+
+output "artifact_bucket_name" {
+  value = "${aws_s3_bucket.}"
+}

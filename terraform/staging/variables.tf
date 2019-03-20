@@ -2,6 +2,12 @@ variable "key_name" {
   default = "stage_key"
 }
 
+variable "key_name_pub" {
+  default = "stage_key"
+}
+
+variable "path_to_key" {}
+
 variable "region" {
   default = "us-east-2"
 }
@@ -15,5 +21,7 @@ variable "instance_type" {
 }
 
 variable "public_ip" {
-  default = false
+  default = true
 }
+
+variable "artifact_path" {}
