@@ -30,3 +30,5 @@ variable "max_size" {
 }
 
 variable "ami_id" {}
+
+variable "user_data" {}

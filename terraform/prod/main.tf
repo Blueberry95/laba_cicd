@@ -19,6 +19,10 @@ data "terraform_remote_state" "base_state" {
   }
 }
 
+data "template_file" "userdata" {
+  template = "#!/bin/bash\n${file("../user_data/install_tomcat.tpl")}"
+}
+
 module "prod" {
   source                = "../modules/web_server"
   cluster_name          = "${data.terraform_remote_state.base_state.cluster_name}"
@@ -27,4 +31,5 @@ module "prod" {
   key_name              = "${var.key_name}"
   public_ip             = "${var.public_ip}"
   ami_id                = "${var.ami_id}"
+  user_data             = "${data.template_file.userdata.rendered}"
 }

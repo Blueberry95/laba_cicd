@@ -10,10 +10,10 @@ resource "aws_elb" "elb" {
   }
   health_check {
     healthy_threshold   = 4
-    unhealthy_threshold = 4
+    unhealthy_threshold = 8
     timeout             = 30
-    target              = "tcp:8080"
-    interval            = 45
+    target              = "tcp:22"
+    interval            = 60
   }
 }
 
@@ -24,6 +24,7 @@ resource "aws_launch_configuration" "lc_conf_prod" {
   key_name                    = "${var.key_name}"
   associate_public_ip_address = "${var.public_ip}"
   security_groups             = ["${var.vpc_security_group_id}"]
+  user_data                   = "${var.user_data}"
 
   lifecycle {
     create_before_destroy = true

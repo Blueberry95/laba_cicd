@@ -28,21 +28,6 @@
     }],
     "provisioners": [
         {
-          "type": "shell",
-          "inline": [
-            "sleep 40",
-            "sudo apt-get update -y",
-            "sudo apt-get install software-properties-common -y",
-            "sudo apt-get -y install python"
-          ]
-        },
-        {
-          "type": "ansible",
-          "playbook_file": "./files/java_app/deploy.yml",
-          "user": "ubuntu",
-          "extra_arguments": [ "-vv" ]
-        },
-        {
           "type": "file",
           "source": "{{ user `artifact_location` }}",
           "destination": "/tmp/SampleWebApplication.war"
@@ -50,7 +35,7 @@
         {
           "type": "shell",
           "inline": [
-            "sudo mv /tmp/SampleWebApplication.war /opt/tomcat/webapps/"
+            "sudo mv /tmp/SampleWebApplication.war /root/SampleWebApplication.war"
           ]
         }
     ]

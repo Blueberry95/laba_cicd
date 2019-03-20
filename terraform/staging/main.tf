@@ -41,7 +41,7 @@ resource "aws_key_pair" "deployer" {
 }
 
 data "template_file" "userdata" {
-  template = "#!/bin/bash\n${file("./user_data/install_tomcat.tpl")}"
+  template = "#!/bin/bash\n${file("../user_data/install_tomcat.tpl")}"
 }
 
 resource "aws_instance" "instance_stage" {

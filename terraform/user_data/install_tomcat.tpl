@@ -42,3 +42,7 @@ usermod -a -G tomcat ubuntu
 
 systemctl daemon-reload
 systemctl start tomcat
+
+if [ -e /root/SampleWebApplication.war ]; then
+    mv /root/SampleWebApplication.war /opt/tomcat/webapps/
+fi
