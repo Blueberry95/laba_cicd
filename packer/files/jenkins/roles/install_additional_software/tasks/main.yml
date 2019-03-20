@@ -2,7 +2,7 @@
 
 - name: Ensure dependencies are installed
   apt:
-    name: "{{ terraform_installation_dependecies }}"
+    name: "{{ installation_dependecies }}"
     state: present
     update_cache: yes
   register: install_dependecies
@@ -10,9 +10,13 @@
   delay: 10
   until: install_dependecies is success
   
-- name: Download and unarchive terraform
+- name: Download and unarchive additional software
   unarchive:
-    src: "{{ terraform_pkg_url }}"
+    src: "{{ item }}"
     dest: /usr/local/bin
     remote_src: yes
     mode: 755
+  with_items:
+    - "{{ terraform_pkg_url }}"
+    - "{{ packer_pkg_url }}"
+    

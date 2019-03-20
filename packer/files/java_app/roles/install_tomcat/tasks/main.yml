@@ -1,0 +1,50 @@
+---
+- name: Install Java
+  apt: 
+    name: default-jdk
+    state: present
+    update_cache: yes
+
+- name: add group "tomcat"
+  group: 
+    name: tomcat
+
+- name: add user "tomcat"
+  user: 
+    name: tomcat 
+    group: tomcat 
+    home: /usr/share/tomcat 
+    createhome: no
+
+- name: Download and unarchive additional software
+  unarchive:
+    src: "{{ tomcat_pkg_url }}"
+    dest: /opt/tomcat
+    remote_src: yes
+    creates: /opt/tomcat
+    owner: tomcat
+    group: tomcat
+    mode: 755
+
+- name: systemd daemon-reload
+  shell: "update-java-alternatives -l | awk '{print $NF}'"
+  register: openjdk
+
+- name: Set java version
+  set_fact:
+    openjdk: openjdk
+
+- name: value of JAVA_HOME
+  template: 
+    src: tomcat.service.j2
+    dest: /etc/systemd/system/tomcat.service
+
+- name: force systemd to reread configs 
+  systemd:
+    daemon_reload: yes
+
+- name: tomcat-8-start
+  service: 
+    name: tomcat 
+    state: started 
+    enabled: yes

@@ -1,0 +1,16 @@
+---
+
+# Installation varialbles
+terraform_version: "0.11.11"
+terraform_pkg_url: "https://releases.hashicorp.com/terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_linux_amd64.zip"
+
+packer_version: "1.3.4"
+packer_pkg_url: https://releases.hashicorp.com/packer/{{ packer_version }}/packer_{{ packer_version }}_linux_amd64.zip
+
+
+installation_dependecies: 
+  - unzip
+  - default-jdk
+  - maven
+
+

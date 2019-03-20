@@ -1,0 +1,10 @@
+---
+
+# Installation varialbles
+tomcat_version: "8.5.8"
+tomcat_pkg_url: "http://archive.apache.org/dist/tomcat/tomcat-8/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz"
+
+
+installation_dependecies: 
+  - unzip
+

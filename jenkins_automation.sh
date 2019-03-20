@@ -30,6 +30,9 @@ if [ "$PASSWORD" = "" ]; then
     exit 1
 fi
 
+echo "Exporting AWS keys"
+export AWS_ACCESS_KEY_ID="$AWS_KEY"
+export AWS_SECRET_ACCESS_KEY="$AWS_SECRET"
 
 echo "Installation Packer"
 
